@@ -1,6 +1,8 @@
 {
   "metadata": {
-    "title": "next template"
+    "app": "Google Drive Music",
+    "app_default_title": "Google Drive Music",
+    "desc": "Play Music in Google Drive"
   },
   "common": {
     "pageError": "Something went wrong",

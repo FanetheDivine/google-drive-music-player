@@ -1,5 +1,5 @@
 {
-  "name": "next-template",
+  "name": "google-drive-music-player",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -16,6 +16,7 @@
     "@ant-design/icons": "^5.4.0",
     "@ant-design/nextjs-registry": "^1.2.0",
     "@ant-design/v5-patch-for-react-19": "^1.0.3",
+    "@ducanh2912/next-pwa": "^10.2.9",
     "@next/bundle-analyzer": "^16.0.1",
     "@next/env": "^16.0.1",
     "@tailwindcss/postcss": "^4.1.16",

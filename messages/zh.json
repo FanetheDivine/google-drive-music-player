@@ -1,6 +1,8 @@
 {
   "metadata": {
-    "title": "next项目模板"
+    "app": "Google Drive Music",
+    "app_default_title": "Google Drive Music",
+    "desc": "播放Google Drive中的音乐"
   },
   "common": {
     "pageError": "页面错误",
