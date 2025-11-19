@@ -1,18 +1,19 @@
 import { NextConfig } from 'next'
 import createNextIntlPlugin from 'next-intl/plugin'
-import createPWAPlugin from '@ducanh2912/next-pwa'
 import nextAnalyzer from '@next/bundle-analyzer'
+import withSerwistInit from '@serwist/next'
 
 const nextConfig: NextConfig = {
   output: process.env.EXPORT === 'true' ? 'export' : undefined,
 }
 
-const withPWA = createPWAPlugin({
-  dest: 'public',
+const withSerwist = withSerwistInit({
+  swSrc: 'src/app/sw.ts',
+  swDest: 'public/sw.js',
 })
 const withNextIntl = createNextIntlPlugin()
 const withAnalyzer = nextAnalyzer({
   enabled: process.env.ANALYZE === 'true',
 })
 
-export default withAnalyzer(withPWA(withNextIntl(nextConfig)))
+export default withAnalyzer(withSerwist(withNextIntl(nextConfig)))
