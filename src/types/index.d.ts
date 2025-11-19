@@ -8,4 +8,8 @@ declare global {
   }
   /** 判断一个类型是否可能是函数 */
   type isFunction<T> = T extends (...args: any[]) => any ? true : false
+
+  interface Window {
+    google: any
+  }
 }

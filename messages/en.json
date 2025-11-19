@@ -10,6 +10,20 @@
     "reloadPage": "Reload Page",
     "toHomepage": "Go to Homepage",
     "goback": "Go Back",
-    "page404": "Page Not Found"
+    "page404": "Page Not Found",
+    "clickToLogin": "click to login"
+  },
+  "google": {
+    "scriptError": "Cannot load google script",
+    "scriptErrorSubTitle": "Please check out your network and refresh the page",
+    "pleaseLogin": "Please login google account"
+  },
+  "music": {
+    "selectFromDrive": "select music from drive",
+    "select": "select music",
+    "cacheSelected": "cache selected music",
+    "cache": "cache",
+    "cached": "cached",
+    "playing": "playing"
   }
 }

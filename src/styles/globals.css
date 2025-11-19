@@ -7,6 +7,7 @@
     &::-webkit-scrollbar {
       width: 6px;
       height: 6px;
+      height: 6px;
     }
 
     &::-webkit-scrollbar-track {
@@ -24,11 +25,13 @@
   .app {
     @apply relative m-0 h-full w-full p-0;
   }
+
   html {
     @apply overflow-auto;
     min-height: 667px;
     min-width: 375px;
   }
+
   body,
   .app {
     @apply overflow-auto;

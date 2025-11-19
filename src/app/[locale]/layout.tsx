@@ -14,8 +14,7 @@ import SWRProvider from '@/lib/SWRProvider'
 export async function generateMetadata(props: LocaleParams): Promise<Metadata> {
   const { params } = props
   const { locale } = await params
-  setRequestLocale(locale)
-  const t = await getTranslations()
+  const t = await getTranslations({ locale })
   const app = t('metadata.app')
   const app_default_title = t('metadata.app_default_title')
   const app_title_template = `%s - ${app}`
