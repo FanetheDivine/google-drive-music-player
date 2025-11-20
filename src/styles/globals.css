@@ -27,13 +27,11 @@
   }
 
   html {
-    @apply overflow-auto;
-    min-height: 667px;
-    min-width: 375px;
+    @apply overflow-auto min-w-80;
   }
 
   body,
   .app {
-    @apply min-h-150 min-w-100 overflow-hidden;
+    @apply overflow-hidden;
   }
 }
