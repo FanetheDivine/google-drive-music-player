@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbo",
+    "dev": "EXPORT=true next dev --webpack",
     "build": "EXPORT=true next build --webpack",
     "build:analyze": "ANALYZE=true next build --webpack",
     "start": "next start",
