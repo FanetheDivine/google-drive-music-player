@@ -1,6 +1,6 @@
 {
   "name": "google-drive-music-player",
-  "short_name": "Google Drive Music",
+  "short_name": "音乐播放器",
   "icons": [
     {
       "src": "/logo.svg",
@@ -10,7 +10,7 @@
   ],
   "theme_color": "#FFFFFF",
   "background_color": "#FFFFFF",
-  "start_url": "/",
+  "start_url": "/zh",
   "display": "standalone",
   "orientation": "portrait"
 }
