@@ -106,6 +106,7 @@ export const DriveAudioSelect: FC<ValueController<GoogleAudio[]>> = withErrorBou
               const { id } = record
               return <CacheOp id={id} />
             },
+            width: 130,
           },
         ]}
         showHeader={false}
@@ -132,6 +133,7 @@ const CacheOp: FC<{ id: string }> = (props) => {
       revalidateIfStale: false,
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
+      revalidateOnMount: true,
     },
   )
   const { loading: caching, run: cacheThis } = useRequest(

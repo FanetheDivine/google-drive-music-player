@@ -1,6 +1,5 @@
-import { defaultCache } from '@serwist/next/worker'
 import type { PrecacheEntry, SerwistGlobalConfig } from 'serwist'
-import { Serwist } from 'serwist'
+import { Serwist, StaleWhileRevalidate, ExpirationPlugin } from 'serwist'
 
 // This declares the value of `injectionPoint` to TypeScript.
 // `injectionPoint` is the string that will be replaced by the
@@ -19,7 +18,26 @@ const serwist = new Serwist({
   skipWaiting: true,
   clientsClaim: true,
   navigationPreload: true,
-  runtimeCaching: defaultCache,
+
+  runtimeCaching: [
+    {
+      matcher: ({ request }) =>
+        request.destination === 'document' ||
+        request.destination === 'script' ||
+        request.destination === 'style' ||
+        request.destination === 'image',
+
+      handler: new StaleWhileRevalidate({
+        cacheName: 'permanent-swr-cache',
+        plugins: [
+          new ExpirationPlugin({
+            maxEntries: 9999,
+            maxAgeSeconds: 60 * 60 * 24 * 365 * 100, // 100 年
+          }),
+        ],
+      }),
+    },
+  ],
 })
 
 serwist.addEventListeners()

@@ -1,5 +1,5 @@
 import { useTranslations } from 'next-intl'
-import { FC } from 'react'
+import { FC, useEffect } from 'react'
 import { Table } from 'antd'
 import { DeleteOutlined, PlayCircleOutlined } from '@ant-design/icons'
 import { ValueController } from 'value-controller'
@@ -12,6 +12,11 @@ export const AudioList: FC<AudioList> = (props) => {
   const t = useTranslations()
   const { audioList, dispatchAudioList } = useAudioList()
   const GoogleAudioTable = Table<GoogleAudio>
+  useEffect(() => {
+    document
+      .getElementById(`google-audio-${value}`)
+      ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }, [value])
   return (
     <GoogleAudioTable
       rowKey={'id'}
@@ -25,12 +30,17 @@ export const AudioList: FC<AudioList> = (props) => {
           render: (_, record) => {
             const { id } = record
             const active = id === value
-            if (active) return <span className='text-red-500'>({t('music.playing')})</span>
+            if (active)
+              return <span className='whitespace-nowrap text-red-500'>({t('music.playing')})</span>
             return <PlayCircleOutlined className='text-2xl' onClick={() => onChange?.(id)} />
           },
+          width: 120,
         },
         {
-          dataIndex: 'name',
+          render: (_, record) => {
+            const { id, name } = record
+            return <span id={`google-audio-${id}`}>{name}</span>
+          },
         },
         {
           render: (_, record) => {
