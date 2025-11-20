@@ -19,7 +19,7 @@
     "pleaseLogin": "请登录谷歌账户"
   },
   "music": {
-    "selectFromDrive": "从Google Drive中选择音乐",
+    "selectFromDrive": "从Google Drive选择音乐",
     "select": "选择音乐",
     "cacheSelected": "缓存已选音乐",
     "cache": "缓存",
