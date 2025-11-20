@@ -1,11 +1,9 @@
 import { ComponentType, FC, forwardRef, ReactNode } from 'react'
-import { ComponentType, FC, forwardRef, ReactNode } from 'react'
 import {
   ErrorBoundary,
   ErrorBoundaryPropsWithComponent,
   ErrorBoundaryPropsWithFallback,
   ErrorBoundaryPropsWithRender,
-  FallbackProps,
   FallbackProps,
 } from 'react-error-boundary'
 import { DefaultErrorFallback } from '@/components/DefaultErrorFallback'
@@ -48,11 +46,6 @@ export function withErrorBoundary<T extends ComponentType<any>>(
     })
     return CompWithErrorBoundary as unknown as T
   }
-}
-
-const FallbackComponent: FC<FallbackProps> = (props) => {
-  const { error, resetErrorBoundary } = props
-  return <DefaultErrorFallback error={error} reset={resetErrorBoundary} />
 }
 
 const FallbackComponent: FC<FallbackProps> = (props) => {
