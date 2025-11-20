@@ -27,7 +27,7 @@ export async function generateMetadata(props: LocaleParams): Promise<Metadata> {
       template: app_title_template,
     },
     description: desc,
-    manifest: '/manifest.json',
+    manifest: `/${locale}/manifest.json`,
     appleWebApp: {
       capable: true,
       statusBarStyle: 'default',

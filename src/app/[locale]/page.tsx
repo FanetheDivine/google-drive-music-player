@@ -1,27 +1,49 @@
 'use client'
 
-import { useTranslations } from 'next-intl'
+import { Locale, useLocale, useTranslations } from 'next-intl'
 import { FC, useState } from 'react'
-import { Button, Modal } from 'antd'
+import { Button, Modal, Select } from 'antd'
 import { GoogleOutlined } from '@ant-design/icons'
 import { useBoolean } from 'ahooks'
 import { useAudioList } from '@/hooks'
+import { usePathname, useRouter } from '@/i18n/navigation'
 import { AudioList } from './components/AudioList'
 import { DriveAudioSelect } from './components/DriveAudioSelect'
 import { MusicPlayer } from './components/MusicPlayer'
 
 const Page: FC = () => {
   const t = useTranslations()
+  const locale = useLocale()
+  const router = useRouter()
+  const pathname = usePathname()
   const { audioList, dispatchAudioList } = useAudioList()
   const [selectOpen, { toggle }] = useBoolean()
   const [activeId, setActiveId] = useState('')
+
   return (
     <>
       <div className='flex h-full w-full flex-col overflow-hidden'>
-        <div className='flex gap-4 bg-gray-200 p-4'>
+        <div className='flex items-center gap-4 bg-gray-200 p-4'>
           <Button type='primary' icon={<GoogleOutlined />} onClick={toggle}>
             {t('music.selectFromDrive')}
           </Button>
+          <Select
+            className='ml-auto w-25'
+            value={locale}
+            onChange={(val) => {
+              router.push(pathname, { locale: val })
+            }}
+            options={[
+              {
+                value: 'en',
+                label: 'English',
+              },
+              {
+                value: 'zh',
+                label: '中文',
+              },
+            ]}
+          />
         </div>
         <AudioList className='flex-1' value={activeId} onChange={setActiveId} />
         <MusicPlayer value={activeId} onChange={setActiveId} />
