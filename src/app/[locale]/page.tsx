@@ -18,7 +18,6 @@ const Page: FC = () => {
   const pathname = usePathname()
   const { audioList, dispatchAudioList } = useAudioList()
   const [selectOpen, { toggle }] = useBoolean()
-  const [activeId, setActiveId] = useState('')
 
   return (
     <>
@@ -45,8 +44,8 @@ const Page: FC = () => {
             ]}
           />
         </div>
-        <AudioList className='flex-1' value={activeId} onChange={setActiveId} />
-        <MusicPlayer value={activeId} onChange={setActiveId} />
+        <AudioList className='flex-1' />
+        <MusicPlayer />
       </div>
       <Modal
         title={
