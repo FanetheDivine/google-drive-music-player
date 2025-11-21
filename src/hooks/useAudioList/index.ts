@@ -17,6 +17,7 @@ type AudioListActionMap = {
 type ActiveAudioActionMap = {
   next: undefined
   prev: undefined
+  set: GoogleAudio
 }
 
 export type AudioListStore = {
@@ -86,6 +87,12 @@ export const useAudioList = create(
           }
         },
         dispatchActiveAudio: (action) => {
+          if (action.type === 'set') {
+            set({
+              activeAudio: action.value,
+            })
+            return
+          }
           const { audioList, activeAudio } = get()
           if (audioList.length === 0) {
             set({
