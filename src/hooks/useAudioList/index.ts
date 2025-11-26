@@ -56,7 +56,7 @@ export const useAudioList = create(
             case 'del': {
               set((prev) => {
                 return {
-                  audioList: prev.audioList.filter((a) => a.id === value.id),
+                  audioList: prev.audioList.filter((a) => a.id !== value.id),
                 }
               })
               break
