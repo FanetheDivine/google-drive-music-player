@@ -102,7 +102,7 @@ alwaysApply: true
 - 所有自定义 hooks 位于 `@/hooks` 并在 `index.tsx` 聚合导出：
   - `useImmediateEffect`：在依赖变更后同步执行 effect，适合与受控值同步。
   - `useSemiControlledValue`：辅助实现受控/非受控双模态组件，与 `ValueController` 类型配套。
-  - `useComposition`：处理输入法组合事件（CompositionEvent），用于搜索框等需要支持中文输入的场景。
+  - `useComposition`：处理输入法组合事件（CompositionEvent），用于搜索框等需要支持中文输入的场景。如果需要防抖，只需要将传入的 `onChange` 包装为防抖函数即可（如使用 `useDebounceFn`），hook 会自动处理输入法合成期间的防抖逻辑。
   - `useGoogleAccount`：管理 Google OAuth token，提供 `loginGoogle`、`logout` 方法，自动处理 token 刷新。
   - `useGoogleAudioUrl`：获取音频播放 URL，优先从 IndexedDB 读取，未命中则从 Google Drive 下载并缓存。
   - `useAudioList`：管理音频播放列表状态（Zustand store）。
@@ -145,7 +145,7 @@ alwaysApply: true
 
 - **拼音搜索**：使用 `pinyin-match` 库的 `match(name, search)` 方法，支持中文拼音匹配。
 - **模糊查询**：使用 `String.includes()` 进行大小写不敏感的匹配。
-- **输入法处理**：使用 `useComposition` hook 处理输入法合成事件，避免输入过程中触发搜索，提升用户体验。
+- **输入法处理**：使用 `useComposition` hook 处理输入法合成事件，避免输入过程中触发搜索，提升用户体验。如果需要防抖（如搜索防抖），只需要将 `onChange` 包装为防抖函数后传入 `useComposition` 即可，hook 会自动处理输入法合成期间的防抖逻辑。
 
 ## 代码质量
 
