@@ -17,10 +17,17 @@ export type CompositionProps<Options extends ValueControllerOptions = object> = 
  * @returns 返回一个是否正在合成的state,以及由input使用的合成props
  * @example
  * ```js
- * // search是合成后的值
+ * // 基础用法
  * const [search, setSearch] = useState()
  * const {compositionProps} = useComposition({ value:search, onChange: setSearch })
- *
+ * <Input {...compositionProps}/>
+ * ```
+ * @example
+ * ```js
+ * // 如果需要防抖，只需要将 onChange 包装为防抖函数即可
+ * const [search, setSearch] = useState()
+ * const { run: debouncedSetSearch } = useDebounceFn(setSearch, { wait: 300 })
+ * const { compositionProps } = useComposition({ value:search, onChange: debouncedSetSearch })
  * <Input {...compositionProps}/>
  * ```
  */
@@ -33,9 +40,8 @@ export function useComposition<StrictValue extends boolean>(
   })
   // 合成时更新本地value
   const onChange = useMemoizedFn<ChangeEventHandler<HTMLInputElement>>((e) => {
-    if (isComposing) {
-      onInnerChange(e.target.value)
-    } else {
+    onInnerChange(e.target.value)
+    if (!isComposing) {
       valueController.onChange?.((e.target as HTMLInputElement).value)
     }
   })

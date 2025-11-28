@@ -2,6 +2,7 @@
   "name": "google-drive-music-player",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "EXPORT=true next dev --webpack",
     "build": "EXPORT=true next build --webpack",
@@ -30,6 +31,7 @@
     "lodash-es": "^4.17.21",
     "next": "^16.0.1",
     "next-intl": "^4.4.0",
+    "pinyin-match": "^1.2.9",
     "react": "^19",
     "react-dom": "^19",
     "react-error-boundary": "^6.0.0",

@@ -1,10 +1,11 @@
 'use client'
 
 import { useTranslations } from 'next-intl'
-import { FC, useEffect, useState } from 'react'
+import { FC, useMemo, useState } from 'react'
 import { Button, Checkbox, Empty, Input, Table } from 'antd'
 import { SearchOutlined } from '@ant-design/icons'
-import { useRequest } from 'ahooks'
+import { useDebounceFn, useRequest } from 'ahooks'
+import pinyinMatch from 'pinyin-match'
 import useSWR from 'swr'
 import { ValueController } from 'value-controller'
 import { useComposition, useGoogleAccount } from '@/hooks'
@@ -23,9 +24,9 @@ import { DefaultLoadingFallback } from '@/components/DefaultLoadingFallback'
 
 export const DriveAudioSelect: FC<ValueController<GoogleAudio[]>> = withErrorBoundary((props) => {
   const { value, onChange } = props
+  const t = useTranslations()
   const { token, loginGoogle } = useGoogleAccount()
-  const [search, setSearch] = useState<string>()
-  const { compositionProps } = useComposition({ value: search, onChange: setSearch })
+
   const { data, isLoading, error, mutate } = useSWR(
     'google-audio-list',
     async () => {
@@ -43,29 +44,86 @@ export const DriveAudioSelect: FC<ValueController<GoogleAudio[]>> = withErrorBou
       revalidateOnMount: true,
     },
   )
+
+  const [search, setSearch] = useState<string>('')
+  const { run: deboSetSearch } = useDebounceFn(setSearch, { wait: 300 })
+  const { compositionProps } = useComposition({ value: search, onChange: deboSetSearch })
+  // 过滤音频列表：支持拼音搜索和模糊查询
+  const filteredData = useMemo(() => {
+    if (!data || !search.trim()) {
+      return data || []
+    }
+
+    const searchLower = search.toLowerCase().trim()
+
+    return data.filter((audio) => {
+      const name = audio.name
+      const nameLower = name.toLowerCase()
+
+      if (nameLower.includes(searchLower)) {
+        return true
+      }
+
+      try {
+        const matchResult = pinyinMatch.match(name, search)
+        if (matchResult !== false) {
+          return true
+        }
+      } catch {
+        /* empty */
+      }
+
+      return false
+    })
+  }, [data, search])
+
   if (isLoading) {
     return <DefaultLoadingFallback />
   }
+
   if (error) {
     return <DefaultErrorFallback error={error} reset={() => mutate()} />
   }
   if (!data || data.length === 0) {
     return <Empty />
   }
+
   const GoogleAudioTable = Table<GoogleAudio>
   return (
     <div className='flex max-h-[60vh] flex-col gap-4'>
-      <Input prefix={<SearchOutlined />} placeholder='搜索音乐' allowClear {...compositionProps} />
+      <Input
+        prefix={<SearchOutlined />}
+        placeholder={t('music.searchPlaceholder')}
+        allowClear
+        onClear={() => setSearch('')}
+        {...compositionProps}
+      />
       <span className='flex items-center gap-2 whitespace-nowrap'>
         <Checkbox
-          checked={Boolean(value?.length)}
-          indeterminate={Boolean(value?.length) && data?.length !== value?.length}
+          checked={
+            filteredData.length > 0 &&
+            filteredData.every((item) => value?.some((v) => v.id === item.id))
+          }
+          indeterminate={
+            filteredData.length > 0 &&
+            filteredData.some((item) => value?.some((v) => v.id === item.id)) &&
+            !filteredData.every((item) => value?.some((v) => v.id === item.id))
+          }
           onChange={() => {
-            // 全选
-            if (data?.length === value?.length) {
-              onChange?.([])
+            // 全选/取消全选（基于过滤后的数据）
+            const filteredIds = new Set(filteredData.map((item) => item.id))
+            const currentSelectedInFiltered =
+              value?.filter((item) => filteredIds.has(item.id)) || []
+            const isAllSelected = currentSelectedInFiltered.length === filteredData.length
+
+            if (isAllSelected) {
+              onChange?.(value?.filter((item) => !filteredIds.has(item.id)) || [])
             } else {
-              onChange?.(data!)
+              const newSelected = [
+                ...(value || []),
+                ...filteredData.filter((item) => !value?.some((v) => v.id === item.id)),
+              ]
+              onChange?.(newSelected)
             }
           }}
         >
@@ -92,11 +150,18 @@ export const DriveAudioSelect: FC<ValueController<GoogleAudio[]>> = withErrorBou
         rowSelection={{
           type: 'checkbox',
           selectedRowKeys: value?.map((item) => item.id),
-          onChange: (val) => {
-            onChange?.(val.map((id) => data?.find((item) => item.id === id)!).filter(Boolean))
+          onChange: (selectedRowKeys) => {
+            // 保留之前选中的项
+            const filteredIds = new Set(filteredData.map((item) => item.id))
+            const otherSelected = (value || []).filter((item) => !filteredIds.has(item.id))
+            const newSelected = [
+              ...otherSelected,
+              ...filteredData.filter((item) => selectedRowKeys.includes(item.id)),
+            ]
+            onChange?.(newSelected)
           },
         }}
-        dataSource={data}
+        dataSource={filteredData}
         columns={[
           {
             dataIndex: 'name',

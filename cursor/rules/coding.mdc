@@ -1,0 +1,156 @@
+---
+alwaysApply: true
+---
+
+# 代码与组件规范
+
+## TypeScript
+
+- `tsconfig.json` 已开启 `strict`、`noEmit`，请保持类型完整。
+- 避免 `any`；若必须使用，请注释原因。优先 `unknown` 或具体类型。
+- **优先使用 `type`** 来声明结构或工具类型；仅在需要声明合并/模块拓展时使用 `interface`。
+- 禁止使用 `enum`，请用联合字面量或对象常量。
+- 导出类型使用命名导出；局部类型就近声明。
+- `@/types/index.d.ts` 定义 `Style、isFunction、ActionType` 等全局辅助类型；`@/types/css.d.ts` 处理样式模块导入，新增类型请集中到 `@/types`。
+  - `ActionType<ActionMap>`：将键值对映射转换为可辨识联合类型（discriminated union），适用于函数需要根据不同类型执行不同操作的场景。转换规则（更宽松的类型设计）：
+    - 将 `{ a: number; b: undefined; c?: number }` 转换为 `{ type: 'a'; value: number } | { type: 'b'; value?: undefined } | { type: 'c'; value?: number }`
+    - 必填且非 `undefined` 的键：生成 `{ type: K; value: ActionMap[K] }`（`value` 必填）
+    - 值为 `undefined` 的键：生成 `{ type: K; value?: undefined }`（`value` 可选，类型为 `undefined`）
+    - 可选键（`c?: number`）：生成 `{ type: K; value?: ActionMap[K] }`（`value` 可选）
+    - 函数可通过 `action.type` 进行类型收窄，TypeScript 会自动推断对应的 `value` 类型
+    - **改进说明**：即使值为 `undefined` 的键也会包含可选的 `value` 字段，这使得类型更加宽松，允许在需要时显式传递 `undefined` 值
+  - 使用示例：
+
+    ```typescript
+    type MyActions = { increment: number; reset: undefined; setValue?: string }
+    type Action = ActionType<MyActions>
+    // Action = { type: 'increment'; value: number } | { type: 'reset'; value?: undefined } | { type: 'setValue'; value?: string }
+
+    function reducer(action: Action) {
+      switch (action.type) {
+        case 'increment':
+          return count + action.value // value: number
+        case 'reset':
+          return 0 // value?: undefined（可选，可以不传递）
+        case 'setValue':
+          return action.value ?? '' // value?: string
+      }
+    }
+    ```
+
+- `@/types/ValueController/index.ts` 声明同名自定义模块 `value-controller`，其中：
+  - `ValueController` 是一个泛型工具，用来描述 `{ value, onChange }` 控制器的多种变体，可通过 `strictValue` 控制 `value` 是否必填、`strictOnChange` 控制 `onChange` 是否必填、`strictOnChangeArg` 控制参数是否可选、`updater` 控制是否支持函数式更新。
+  - `ValueObj`、`OnChangeObj`、`OnChange`、`OnChangeArg`、`Updater` 等类型围绕这些开关派生具体形态，便于组件精准建模受控/半受控/非受控场景。
+  - 该模块完全自定义，不依赖第三方库，引用时 `import type { ValueController } from 'value-controller'`。
+- `Window.google` 类型已在 `@/types/index.d.ts` 中声明为 `any`，用于 Google OAuth 客户端库。
+
+## React / Next.js
+
+- App Router 页面使用默认导出（`page.tsx`、`layout.tsx` 等）。
+- 组件文件 PascalCase；hooks 使用 `useXxx` 命名。
+- Ant Design 组件按需导入（`import { Button } from 'antd'`），按需引入图标并避免一次性全量导入。
+- 服务器组件默认，只有依赖浏览器 API/状态/事件时才添加 `'use client'`。
+- **本项目使用静态导出模式**，所有页面必须在构建时预渲染，不能使用动态服务端功能。
+- 服务端数据：直接 `async` 函数组件 + `await`（仅限构建时预渲染）；客户端数据：SWR。
+- 在 Server Component 中使用 `next-intl/server` 的 `getLocale`、`getTranslations`。
+
+## 运行时边界
+
+- **Server Components**：默认形态，可安全调用 `next-intl/server`、`@/utils/server`（内部依赖 `next/headers`）。**注意**：由于项目使用静态导出，Server Components 仅在构建时执行，不能访问运行时请求信息。
+- **Client Components**：必须以 `'use client'` 开头，禁止引入 `@/utils/server` 或任何使用 `next/headers`/`server-only` 的模块，以免打包失败。
+- **Google API 调用**：必须在 Client Component 中进行，因为需要浏览器环境和 OAuth token。
+- **IndexedDB 操作**：必须在 Client Component 中进行，因为 IndexedDB 是浏览器 API。
+
+## 导入与路径
+
+1. React/Next 核心
+2. 第三方库（antd、lodash、idb、pinyin-match 等）
+3. 内部模块（`@/components` 等）
+4. 类型导入（使用 `import type`）
+5. 相对路径
+
+使用 `@/*` 别名而非 `../../`，组件/函数需与所在目录语义一致。
+
+## 样式
+
+- `@/styles/globals.css` 汇总 Tailwind、Ant Design reset 及项目自定义全局样式；`@/styles/index.ts` 导出如 `AbsoluteCenter` 这类常用 className 常量，可在组件中引用。
+- 优先 Tailwind 工具类；合并 `className` 时调用 `@/utils` 导出的 `cn`（`clsx + tailwind-merge` 包装）。
+- Tailwind 使用细则：
+  1. 简单样式（词数 ≤ 3，如 `m-0`、`max-h-full`）尽量使用 Tailwind；若组合过长，可按语义拆组（如布局类一组、边框类一组）并用 `cn` 拼接。
+  2. 凡是 CSS 属性值包含空格的样式（例如 `box-shadow`、`grid-column: span 1 / -1`）不使用 Tailwind，可放入 CSS Modules 以获得更好的提示。
+  3. 若组件只有极少数复杂样式（如单个 `grid-column: 1 / -1`），可用 `style` 内联；但 `grid-column: span 1 / -1`、`box-shadow` 等需写在 CSS 中。带空格的复杂样式原则上都放 CSS，只有可拆分为多个简单属性（如 padding 的 `pl-*`、`pr-*`）才可以继续使用 Tailwind。
+- 对于复杂视觉效果（自定义阴影、渐变背景、网格列、精细化修改 Antd 组件等），优先使用 CSS Modules 或内联 `style`，无需强行用 Tailwind。
+- 不使用 Sass/Less；全部样式以原生 CSS、CSS Modules 或 Tailwind 为主。
+
+## 工具函数与库
+
+- `@/utils/index` 汇总可在服务端/客户端公用的 helper：
+  - `cn`：使用 `clsx + tailwind-merge` 合并 `className`。
+  - `sleep`：基于 Promise 的延时，在示例页用于模拟异步。
+  - `withSuspense`：为任意组件或 ReactNode 添加 Suspense 边界。
+  - `withErrorBoundary`：基于 `react-error-boundary`，为组件或 ReactNode 增加错误边界。
+  - `loadFile`：在浏览器中以函数形式加载文件。
+  - `Rxjs/*`：导出 RxJS 相关辅助。
+  - `isReactNode`：判断某个值是否为有效的 ReactNode。
+  - `google/*`：导出 Google Drive API 相关函数（`getGoogleAudioFiles`、`getGoogleAudioContent`、`getAudioFromIndexDB`、`storeAudioToIndexDB`）。
+- `@/utils/server` 专用于服务端（依赖 `next/headers`、`react` 的 `cache` 等），例如 `isMobile`，绝不能在 `'use client'` 组件中引用。**注意**：由于项目使用静态导出，`@/utils/server` 的使用场景非常有限。
+- `@/lib` 下存放全局注入、一次性初始化或 layout 级别使用的封装（如主题、注册器、Provider 等）。正常业务页面/组件应调用 `@/utils` 或具体模块，避免滥用 `@/lib`。
+- Google Drive API 调用统一放在 `@/utils/google`，通过原生 `fetch` 处理请求，返回类型化的数据。
+
+## Hooks
+
+- 所有自定义 hooks 位于 `@/hooks` 并在 `index.tsx` 聚合导出：
+  - `useImmediateEffect`：在依赖变更后同步执行 effect，适合与受控值同步。
+  - `useSemiControlledValue`：辅助实现受控/非受控双模态组件，与 `ValueController` 类型配套。
+  - `useComposition`：处理输入法组合事件（CompositionEvent），用于搜索框等需要支持中文输入的场景。如果需要防抖，只需要将传入的 `onChange` 包装为防抖函数即可（如使用 `useDebounceFn`），hook 会自动处理输入法合成期间的防抖逻辑。
+  - `useGoogleAccount`：管理 Google OAuth token，提供 `loginGoogle`、`logout` 方法，自动处理 token 刷新。
+  - `useGoogleAudioUrl`：获取音频播放 URL，优先从 IndexedDB 读取，未命中则从 Google Drive 下载并缓存。
+  - `useAudioList`：管理音频播放列表状态（Zustand store）。
+- Hooks 命名以 `use` 开头并必须严格遵守 React Hooks 规则（只在顶层调用、只在 React 组件或其他 hooks 中调用、依赖列表完整）；若 hook 内部访问浏览器 API（如 IndexedDB、Google API），调用方需在 Client Component 中使用。
+
+## Google Drive API 集成
+
+- **认证流程**：使用 `useGoogleAccount` hook 获取 OAuth token，token 类型为 `Token`（包含 `access_token`、`token_type`）。
+- **API 调用**：
+  - `getGoogleAudioFiles(token)`：获取用户 Google Drive 中的音频文件列表，返回 `GoogleAudio[]`。
+  - `getGoogleAudioContent(token, id)`：下载指定 ID 的音频文件内容，返回 `Blob`。
+- **错误处理**：Google API 调用可能失败（token 过期、网络错误等），需要在 UI 层使用 `withErrorBoundary` 或 `DefaultErrorFallback` 处理错误。
+- **环境变量**：`NEXT_PUBLIC_GOOGLE_CLIENT_ID` 必须在 `.env.local` 中配置。
+
+## IndexedDB 缓存
+
+- **数据库结构**：
+  - 数据库名：`GoogleAudioCache`
+  - 存储名：`audioBlobs`
+  - 键：音频文件 ID（`GoogleAudio.id`）
+  - 值：音频文件 Blob
+- **操作函数**：
+  - `getAudioFromIndexDB(id)`：异步读取缓存，返回 `Blob | undefined`。
+  - `storeAudioToIndexDB(id, content)`：异步存储音频 Blob。
+- **使用场景**：
+  - 音频播放前优先检查缓存，减少网络请求。
+  - 批量缓存选中的音频文件，支持离线播放。
+- **注意事项**：
+  - IndexedDB 操作是异步的，必须使用 `await`。
+  - 存储大文件时注意浏览器存储限制（通常几 GB）。
+  - 缓存策略：优先使用缓存，未命中则下载并缓存。
+
+## 音频处理
+
+- **音频 URL**：使用 `URL.createObjectURL(blob)` 从 Blob 创建可播放的 URL。
+- **音频格式**：支持 MP3、WAV、OGG、FLAC、MP4、M4A、AAC 等常见格式。
+- **播放控制**：使用 HTML5 `<audio>` 元素或 Web Audio API，具体实现参考 `MusicPlayer` 组件。
+
+## 搜索功能
+
+- **拼音搜索**：使用 `pinyin-match` 库的 `match(name, search)` 方法，支持中文拼音匹配。
+- **模糊查询**：使用 `String.includes()` 进行大小写不敏感的匹配。
+- **输入法处理**：使用 `useComposition` hook 处理输入法合成事件，避免输入过程中触发搜索，提升用户体验。如果需要防抖（如搜索防抖），只需要将 `onChange` 包装为防抖函数后传入 `useComposition` 即可，hook 会自动处理输入法合成期间的防抖逻辑。
+
+## 代码质量
+
+- 每次生成或更新代码后，立即执行 `pnpm prettier`（或触发等效格式化命令）确保格式一致。
+- 生成/修改代码完成后运行 `pnpm lint` 或至少执行 ESLint 检查，确保满足项目规范（尤其是 Hooks 依赖、Next.js 约束等）。
+- ESLint 强制 `@next/next/no-async-client-component`、`react-hooks/exhaustive-deps`。
+- 复杂逻辑添加注释；公共 API/组件 Props 提供 JSDoc 或类型注释。
+- **静态导出兼容性**：确保所有代码在构建时能够正常执行，不能依赖运行时服务端功能。

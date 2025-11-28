@@ -1,0 +1,85 @@
+---
+alwaysApply: true
+---
+
+# 项目总览
+
+- **项目名称**：Google Drive Music Player
+- **项目类型**：PWA（渐进式 Web 应用），支持离线播放
+- **框架**：Next.js 16（App Router），TypeScript 严格模式，静态导出模式（`EXPORT=true`）
+- **UI**：React 19 + Ant Design 5，Tailwind CSS 4 做样式，`@/styles` 放共享样式
+- **国际化**：基于 next-intl，页面位于 `src/app/[locale]`，根下有 `app/page.tsx` 负责静态导出时的重定向
+- **状态与数据**：Zustand 管全局状态，SWR 处理客户端数据，Axios 做 HTTP
+- **PWA**：使用 Serwist 9 实现 Service Worker，支持离线缓存和资源预缓存
+- **离线存储**：使用 IndexedDB（通过 `idb` 库）缓存音频文件 Blob，数据库名 `GoogleAudioCache`，存储名 `audioBlobs`
+- **Google API**：集成 Google Drive API v3，使用 OAuth 2.0 认证，支持读取音频文件列表和下载音频内容
+- **搜索功能**：支持拼音搜索（`pinyin-match`）和模糊查询
+- **工具链**：pnpm、ESLint 9（含 `@next/next/no-async-client-component`）、Prettier（含 sort-imports、tailwind 插件）、Tailwind 4 config (`tailwind.config.ts`)
+- **路径别名**：`@/* -> src/*`，请优先使用别名
+
+# 目录速览
+
+```
+src/
+├─ app/          # App Router（含 [locale] 和 sw.ts Service Worker）
+├─ components/   # 通用组件（DefaultErrorFallback、DefaultLoadingFallback）
+├─ hooks/        # 自定义 hooks（useGoogleAccount、useGoogleAudioUrl、useAudioList、useComposition 等）
+├─ i18n/         # next-intl 配置与导航封装
+├─ lib/          # 第三方封装（AntdProvider、SWRProvider）
+├─ styles/       # 样式与常量
+├─ types/        # 类型声明（ValueController、全局类型等）
+└─ utils/        # 工具函数（Google API、IndexedDB、RxJS 等）
+```
+
+# 项目特定功能
+
+## Google Drive 集成
+
+- **认证**：使用 `useGoogleAccount` hook 管理 Google OAuth 2.0 token，支持自动刷新（50分钟）
+- **API 调用**：`@/utils/google` 提供 `getGoogleAudioFiles`（获取音频列表）、`getGoogleAudioContent`（下载音频内容）
+- **音频类型**：支持 MP3、WAV、OGG、FLAC、MP4、M4A、AAC 等格式
+- **环境变量**：`NEXT_PUBLIC_GOOGLE_CLIENT_ID` 用于 Google OAuth 配置
+
+## 离线缓存策略
+
+- **IndexedDB**：音频文件以 Blob 形式存储在 IndexedDB，键为文件 ID
+- **缓存逻辑**：
+  - `getAudioFromIndexDB`：从 IndexedDB 读取缓存
+  - `storeAudioToIndexDB`：存储音频到 IndexedDB
+  - `useGoogleAudioUrl`：优先使用缓存，未命中则从 Google Drive 下载并缓存
+- **Service Worker**：使用 Serwist 的 StaleWhileRevalidate 策略缓存静态资源（文档、脚本、样式、图片），缓存时间 100 年
+
+## 音频播放
+
+- **音频列表管理**：`useAudioList` hook 管理播放列表状态
+- **URL 生成**：使用 `URL.createObjectURL` 从 Blob 创建可播放的 URL
+- **播放器组件**：`MusicPlayer` 组件处理音频播放控制
+
+## 搜索功能
+
+- **拼音搜索**：使用 `pinyin-match` 库支持中文拼音匹配
+- **模糊查询**：支持文件名大小写不敏感的模糊匹配
+- **输入法处理**：`useComposition` hook 处理输入法合成事件，避免输入过程中触发搜索
+
+# 常用脚本
+
+| 命令                 | 说明                            |
+| -------------------- | ------------------------------- |
+| `pnpm dev`           | 开发调试（`EXPORT=true next dev --webpack`） |
+| `pnpm build`         | 构建并静态导出（`EXPORT=true next build --webpack`） |
+| `pnpm build:analyze` | `ANALYZE=true` 开启 bundle 分析 |
+| `pnpm prettier`      | `prettier --write src/`         |
+
+> `next.config.ts` 会串联 next-intl、Serwist 与 bundle analyzer，可通过环境变量控制导出/分析/类型检查。项目默认使用静态导出模式（`EXPORT=true`），因此所有代码必须兼容静态导出。
+
+# 注意事项
+
+- **静态导出限制**：项目使用静态导出模式，不能使用服务端 API routes、Server Actions（除非在构建时预渲染）
+- **客户端 API**：Google API 调用、IndexedDB 操作必须在客户端组件中进行
+- **PWA 配置**：Service Worker 配置在 `src/app/sw.ts`，通过 `@serwist/next` 集成
+- **音频缓存**：音频文件较大，注意 IndexedDB 存储限制和清理策略
+- **OAuth Token**：Google OAuth token 会自动刷新，但需要处理 token 过期和错误情况
+
+# 参考
+
+- 如需补充规范，允许联网查阅 Next.js、next-intl、Ant Design、Serwist、Google Drive API 等官方文档或权威资料，确保内容与最新版本保持一致。
