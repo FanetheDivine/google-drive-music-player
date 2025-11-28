@@ -2,6 +2,7 @@
   "name": "google-drive-music-player",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "EXPORT=true next dev --webpack",
     "build": "EXPORT=true next build --webpack",
