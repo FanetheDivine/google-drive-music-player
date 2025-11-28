@@ -24,6 +24,7 @@
     "cacheSelected": "cache selected music",
     "cache": "cache",
     "cached": "cached",
-    "playing": "playing"
+    "playing": "playing",
+    "searchPlaceholder": "Search music"
   }
 }

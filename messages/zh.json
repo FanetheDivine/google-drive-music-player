@@ -24,6 +24,7 @@
     "cacheSelected": "缓存已选音乐",
     "cache": "缓存",
     "cached": "已缓存",
-    "playing": "播放中"
+    "playing": "播放中",
+    "searchPlaceholder": "搜索音乐"
   }
 }
