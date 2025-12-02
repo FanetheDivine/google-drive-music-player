@@ -39,6 +39,7 @@ export function useSemiControlledValue<
   useImmediateEffect(() => {
     currentValueRef.current = value
   }, [value])
+  // eslint-disable-next-line react-hooks/refs
   const currentValue = currentValueRef.current as ValueObj<V, Options>['value']
 
   // 对外暴露的更新函数可以接受更新函数
