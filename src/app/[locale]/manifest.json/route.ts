@@ -1,17 +1,16 @@
 import { hasLocale } from 'next-intl'
 import { getTranslations } from 'next-intl/server'
 import { notFound } from 'next/navigation'
+import { type NextRequest, NextResponse } from 'next/server'
 import { routing } from '@/i18n/routing'
-import { LocaleParams } from '@/i18n/type'
 
-export async function GET(req: Request, props: LocaleParams) {
-  const params = await props.params
-  const { locale } = params
+export async function GET(req: NextRequest, ctx: RouteContext<'/[locale]/manifest.json'>) {
+  const { locale } = await ctx.params
   if (!hasLocale(routing.locales, locale)) {
     notFound()
   }
   const t = await getTranslations({ locale })
-  return Response.json({
+  return NextResponse.json({
     name: t('metadata.app'),
     short_name: t('metadata.short_name'),
     icons: [
