@@ -3,17 +3,19 @@ import { hasLocale } from 'next-intl'
 import { NextIntlClientProvider } from 'next-intl'
 import { getLocale, getTranslations, setRequestLocale } from 'next-intl/server'
 import { notFound } from 'next/navigation'
-import { FC, PropsWithChildren } from 'react'
+import { FC } from 'react'
 import { App } from 'antd'
 import { match } from 'ts-pattern'
 import { routing } from '@/i18n/routing'
-import { type LocaleParams } from '@/i18n/type'
 import AntdProvider from '@/lib/AntdProvider'
 import SWRProvider from '@/lib/SWRProvider'
 
-export async function generateMetadata(props: LocaleParams): Promise<Metadata> {
+export async function generateMetadata(props: LayoutProps<'/[locale]'>): Promise<Metadata> {
   const { params } = props
   const { locale } = await params
+  if (!hasLocale(routing.locales, locale)) {
+    return {}
+  }
   const t = await getTranslations({ locale })
   const app = t('metadata.app')
   const app_default_title = t('metadata.app_default_title')
@@ -60,8 +62,8 @@ export const viewport: Viewport = {
   themeColor: '#FFFFFF',
 }
 
-const RootLayout: FC<PropsWithChildren> = async (props) => {
-  const { children, params } = props as PropsWithChildren & LocaleParams
+const RootLayout: FC<LayoutProps<'/[locale]'>> = async (props) => {
+  const { children, params } = props
 
   const locale = await match(process.env.EXPORT === 'true')
     .with(true, async () => {

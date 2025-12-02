@@ -148,15 +148,28 @@ alwaysApply: true
 - Route Handlers 必须使用 `next/server` 导出的 `NextRequest` 和 `NextResponse` 类型，禁止使用原生的 `Request` 和 `Response`。
 - **数据验证**：Server Actions 和 Route Handlers 中的输入数据应使用 Zod 进行验证，参考"数据验证与类型推断"规范。
 
-### PageProps 和 RouteContext
+### PageProps、LayoutProps 和 RouteContext
 
-Next.js 16 提供的全局类型工具，用于类型化页面组件和路由处理程序的参数，在运行 `next dev`、`next build` 或 `next typegen` 时自动生成，无需手动导入。**注意**：这两个类型不包含查询参数（`searchParams`），需要手动通过交叉类型（`&`）添加 `{ searchParams: Promise<{ ... }> }` 类型。这些类型仅在运行 `next dev` 时才会更新。
+Next.js 16 提供的全局类型工具，用于类型化页面组件、布局组件和路由处理程序的参数，在运行 `next dev`、`next build` 或 `next typegen` 时自动生成，无需手动导入。**注意**：这些类型仅在运行 `next dev` 时才会更新。
 
 #### PageProps<Route>
 
-用于类型化页面组件（`page.tsx`）和布局组件（`layout.tsx`）的默认导出服务端组件，以及 `generateMetadata` 函数的参数。包含 `params`（动态路由参数），为 Promise，需要使用 `await` 访问。
+用于类型化页面组件（`page.tsx`）的默认导出服务端组件，以及 `generateMetadata` 函数的参数。包含 `params`（动态路由参数），为 Promise，需要使用 `await` 访问。
 
 如需使用查询参数，需手动添加 `searchParams` 类型。`searchParams`的通用类型是`Promise<Record<string,string|string[]|undefined>>`,但也可以由开发者指定具体的类型，例如`Promise<{id?:string}>`
+
+#### LayoutProps<Route>
+
+用于类型化布局组件（`layout.tsx`）的默认导出服务端组件。包含 `params`（动态路由参数）和 `children`（React.ReactNode），均为 Promise，需要使用 `await` 访问。如果布局使用了平行路由（parallel routes），`LayoutProps` 会自动包含对应的 slot 属性（如 `header`、`sidebar` 等）。
+
+使用示例：
+
+```ts
+export default async function Layout(props: LayoutProps<'/[locale]'>) {
+  const { locale } = await props.params
+  return <div lang={locale}>{props.children}</div>
+}
+```
 
 #### RouteContext<Route>
 
