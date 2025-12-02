@@ -1,8 +1,9 @@
 {
   "metadata": {
-    "app": "Google Drive Music",
+    "app": "Google Drive 音乐播放器",
     "app_default_title": "Google Drive Music",
-    "desc": "播放Google Drive中的音乐"
+    "desc": "播放Google Drive中的音乐",
+    "short_name": "音乐播放器"
   },
   "common": {
     "pageError": "页面错误",
