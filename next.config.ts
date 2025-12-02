@@ -19,4 +19,10 @@ const withAnalyzer = nextAnalyzer({
   enabled: process.env.ANALYZE === 'true',
 })
 
-export default withAnalyzer(withSerwist(withNextIntl(nextConfig)))
+// 开发环境不包含 PWA 相关配置
+const isDev = process.env.NODE_ENV === 'development'
+const configWithPlugins = isDev
+  ? withAnalyzer(withNextIntl(nextConfig))
+  : withAnalyzer(withSerwist(withNextIntl(nextConfig)))
+
+export default configWithPlugins
