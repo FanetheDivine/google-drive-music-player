@@ -52,7 +52,7 @@ const Page: FC = () => {
             ]}
           />
         </div>
-        <AudioList className='flex-1' />
+        <AudioList className='flex-1' searchKeyword={search} />
         <MusicPlayer />
       </div>
       {audioList.length > 0 ? (
@@ -62,8 +62,8 @@ const Page: FC = () => {
           dragMomentum={false}
           dragElastic={0.3}
           className={cn(
-            'fixed top-20 left-0 z-10 translate-x-1/2',
-            'w-[50vw] min-w-40',
+            'fixed top-20 left-1/2 z-10 -translate-x-1/2',
+            'w-[50vw] max-w-70 min-w-40',
             'rounded-full bg-white px-4 py-1 shadow-md',
           )}
         >
@@ -71,7 +71,6 @@ const Page: FC = () => {
             prefix={<SearchOutlined />}
             placeholder={t('music.searchPlaceholder')}
             allowClear
-            className='w-full'
             onClear={() => setSearch('')}
             {...compositionProps}
           />
