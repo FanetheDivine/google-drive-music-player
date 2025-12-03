@@ -1,11 +1,13 @@
 'use client'
 
-import { Locale, useLocale, useTranslations } from 'next-intl'
-import { FC, useState } from 'react'
-import { Button, Modal, Select } from 'antd'
-import { GoogleOutlined } from '@ant-design/icons'
-import { useBoolean } from 'ahooks'
-import { useAudioList } from '@/hooks'
+import { useLocale, useTranslations } from 'next-intl'
+import { FC, useEffect, useRef, useState } from 'react'
+import { Button, Input, Modal, Select } from 'antd'
+import { GoogleOutlined, SearchOutlined } from '@ant-design/icons'
+import { useBoolean, useDebounceFn } from 'ahooks'
+import { motion } from 'motion/react'
+import { useAudioList, useComposition } from '@/hooks'
+import { cn } from '@/utils'
 import { usePathname, useRouter } from '@/i18n/navigation'
 import { AudioList } from './components/AudioList'
 import { DriveAudioSelect } from './components/DriveAudioSelect'
@@ -18,7 +20,13 @@ const Page: FC = () => {
   const pathname = usePathname()
   const { audioList, dispatchAudioList } = useAudioList()
   const [selectOpen, { toggle }] = useBoolean()
-
+  const [search, setSearch] = useState<string>('')
+  const { run: deboSetSearch } = useDebounceFn(setSearch, { wait: 300 })
+  const { compositionProps } = useComposition({ value: search, onChange: deboSetSearch })
+  const bodyRef = useRef<HTMLElement>(null)
+  useEffect(() => {
+    bodyRef.current = document.body
+  }, [])
   return (
     <>
       <div className='flex h-full w-full flex-col overflow-hidden'>
@@ -44,9 +52,30 @@ const Page: FC = () => {
             ]}
           />
         </div>
-        <AudioList className='flex-1' />
+        <AudioList className='flex-1' searchKeyword={search} />
         <MusicPlayer />
       </div>
+      {audioList.length > 0 ? (
+        <motion.div
+          drag
+          dragConstraints={bodyRef}
+          dragMomentum={false}
+          dragElastic={0.3}
+          className={cn(
+            'fixed top-20 left-1/2 z-10 -translate-x-1/2',
+            'w-[50vw] max-w-70 min-w-40',
+            'rounded-full bg-white px-4 py-1 shadow-md',
+          )}
+        >
+          <Input
+            prefix={<SearchOutlined />}
+            placeholder={t('music.searchPlaceholder')}
+            allowClear
+            onClear={() => setSearch('')}
+            {...compositionProps}
+          />
+        </motion.div>
+      ) : null}
       <Modal
         title={
           <span className='flex items-center gap-2'>
