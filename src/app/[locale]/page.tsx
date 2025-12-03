@@ -63,7 +63,7 @@ const Page: FC = () => {
           dragElastic={0.3}
           className={cn(
             'fixed top-20 left-0 z-10 translate-x-1/2',
-            'max-w-[50vw] min-w-40',
+            'w-[50vw] min-w-40',
             'rounded-full bg-white px-4 py-1 shadow-md',
           )}
         >
